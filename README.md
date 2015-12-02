@@ -1,6 +1,6 @@
 # tracking-with-rnn
 
-[Paper](http://arxiv.org/abs/1511.06425)
+Videos and codebase of [First step toward model-free, anonymous object tracking with recurrent networks](http://arxiv.org/abs/1511.06425).
 
 ## Requirements
 
