@@ -200,31 +200,6 @@ def gauss2D(shape, u, sigma, stride):
     return h
 
 ### Recurrent step
-# img: of shape (batch_size, nr_channels, img_rows, img_cols)
-def _step(img, prev_bbox, prev_att, state):
-	# of (batch_size, nr_filters, some_rows, some_cols)	
-	cx = (prev_bbox[:,2]+prev_bbox[:,0])/2.0
-	cy = (prev_bbox[:,3]+prev_bbox[:,1])/2.0
-	sigma = prev_att[:, 0]
-	stride = prev_att[:, 1]
-
-        g2Dlist=[None]*32
-        for i in xrange(32):
-            g2Dlist[i]=gauss2D((img_row, img_col), (cy[i], cx[i]), sigma[i], stride[i])[NP.newaxis, NP.newaxis, :, :]
-        g2D = TT.concatenate(g2Dlist, axis=0)
-	img = g2D * img
-
-	conv1 = conv2d(img, conv1_filters, subsample=(conv1_stride, conv1_stride))
-	act1 = TT.tanh(conv1)
-	flat1 = TT.reshape(act1, (batch_size, conv1_output_dim))
-	gru_in = TT.concatenate([flat1, prev_bbox], axis=1)
-	gru_z = NN.sigmoid(TT.dot(gru_in, Wz) + TT.dot(state, Uz) + bz)
-	gru_r = NN.sigmoid(TT.dot(gru_in, Wr) + TT.dot(state, Ur) + br)
-	gru_h_ = TT.tanh(TT.dot(gru_in, Wg) + TT.dot(gru_r * state, Ug) + bg)
-	gru_h = (1-gru_z) * state + gru_z * gru_h_
-	bbox = TT.tanh(TT.dot(gru_h, W_fc2) + b_fc2)
-	att = TT.dot(gru_h, W_fc3) + b_fc3
-	return bbox, att, gru_h, g2D
 
 def __filterbank(center_x, center_y, stride, sigma):
 	'''
