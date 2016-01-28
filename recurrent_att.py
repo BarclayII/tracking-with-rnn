@@ -84,10 +84,12 @@ zoom_scale = 0
 double_mnist = False
 NUM_N = 5
 dataset_name = "train"
+filename = "mnist.h5"
 
 nr_objs = 1
 clutter_move = 1
 with_clutters = 1
+att_params = 3              # fraction, scale, amplifier
 ### CONFIGURATION END
 
 ### getopt begin
@@ -96,7 +98,7 @@ import sys
 
 try:
 	opts, args = getopt(sys.argv[1:], "", ["batch_size=", "conv1_nr_filters=", "conv1_filter_size=", "conv1_stride=", "img_size=", "gru_dim=", "seq_len=", "use_cudnn", "zero_tail_fc", "var_len", "test", "acc_scale=",
-		"zoom_scale=", "dataset=", "double_mnist", "nr_objs=", "clutter_static", "without_clutters"])
+		"zoom_scale=", "dataset=", "double_mnist", "nr_objs=", "clutter_static", "without_clutters", "grid_size=", "filename="])
 	for opt in opts:
 		if opt[0] == "--batch_size":
 			batch_size = int(opt[1])
@@ -138,6 +140,10 @@ try:
                         clutter_move = 0
 		elif opt[0] == "--without_clutters":
 			with_clutters = 0
+		elif opt[0] == "--grid_size":
+			NUM_N = int(opt[1])
+                elif opt[0] == "--filename":
+                        filename = opt[1]
 	if len(args) > 0:
 		model_name = args[0]
 except:
@@ -168,74 +174,55 @@ Ug = T.shared(orthogonal((gru_dim, gru_dim)), name='Ug')
 bg = T.shared(NP.zeros((gru_dim,), dtype=T.config.floatX), name='bg')
 W_fc2 = T.shared(glorot_uniform((gru_dim, 4)) if not zero_tail_fc else NP.zeros((gru_dim, 4), dtype=T.config.floatX), name='W_fc2')
 b_fc2 = T.shared(NP.zeros((4,), dtype=T.config.floatX), name='b_fc2')
-W_fc3 = T.shared(glorot_uniform((gru_dim, 2)), name='W_fc2')
-b_fc3 = T.shared(NP.zeros((2,), dtype=T.config.floatX), name='b_fc2')
+W_fc3 = T.shared(glorot_uniform((gru_dim, att_params)), name='W_fc2')
+b_fc3 = T.shared(NP.zeros((att_params,), dtype=T.config.floatX), name='b_fc2')
 
 ### NETWORK PARAMETERS END
 
 print 'Building network'
 
-def gauss2D(shape, u, sigma, stride):
-    """
-    2D gaussian mask for tensor
-    """
-    m,n = [(ss-1.)/2. for ss in shape]
-    y,x = NP.ogrid[-m:m+1,-n:n+1]
-    y = (y/img_row).astype('float32')
-    x = (x/img_col).astype('float32')
-    epsi = 1e-8
-    stride = TT.switch(stride>0, stride, -1.0 * stride)/(NUM_N-1)
-    sigma = TT.switch(sigma>0, sigma, -1.0 * sigma)
-    uX = u[0]
-    uY = u[1]
-    h = [None] * NUM_N * NUM_N
-    for i in xrange(NUM_N):
-        for j in xrange(NUM_N):
-            uX = u[0] + (i - NUM_N/2.0) * stride
-            uY = u[1] + (j - NUM_N/2.0) * stride
-            h[i*NUM_N+j]=TT.exp( -((x-uX)*(x-uX)/(sigma*2.0+epsi)+(y-uY)*(y-uY)/(sigma*2.0+epsi))).reshape((1, img_row, img_col))
-    h = TT.concatenate(h, axis=0)
-    h = h.sum(axis=0)
-    h /= h.sum()
-    return h
+A = TT.arange(img_col, dtype=T.config.floatX)
+B = TT.arange(img_row, dtype=T.config.floatX)
+A.name = 'a'
+B.name = 'b'
 
-### Recurrent step
-
-def __filterbank(center_x, center_y, stride, sigma):
+def __filterbank(center_x, center_y, delta, sigma):
 	'''
 	From Bornschein's DRAW
-	cx, cy, stride, sigma are absolute and respective to the whole canvas (in pixels)
+	cx, cy, delta, sigma are absolute and respective to the whole canvas (in pixels)
 	'''
-	muX = center_x.dimshuffle(0, 'x') + delta.dimshuffle(0, 'x') * (TT.arange(NUM_N) - (NUM_N - 1) / 2.)
-	muY = center_y.dimshuffle(0, 'x') + delta.dimshuffle(0, 'x') * (TT.arange(NUM_N) - (NUM_N - 1) / 2.)
-
-	a = TT.arange(img_cols)
-	b = TT.arange(img_rows)
+	muX = center_x.dimshuffle(0, 'x') + delta.dimshuffle(0, 'x') * (TT.arange(NUM_N, dtype=T.config.floatX) - (NUM_N - 1) / 2.)
+	muY = center_y.dimshuffle(0, 'x') + delta.dimshuffle(0, 'x') * (TT.arange(NUM_N, dtype=T.config.floatX) - (NUM_N - 1) / 2.)
 
 	eps = 1e-8
 
-	FX = TT.exp(-(a - muX.dimshuffle(0, 1, 'x')) ** 2 / 2. / sigma.dimshuffle(0, 'x', 'x') ** 2)
-	FY = TT.exp(-(b - muY.dimshuffle(0, 1, 'x')) ** 2 / 2. / sigma.dimshuffle(0, 'x', 'x') ** 2)
+	FX = TT.exp(-(A - muX.dimshuffle(0, 1, 'x')) ** 2 / 2. / (sigma.dimshuffle(0, 'x', 'x') ** 2 + eps))
+	FY = TT.exp(-(B - muY.dimshuffle(0, 1, 'x')) ** 2 / 2. / (sigma.dimshuffle(0, 'x', 'x') ** 2 + eps))
 
 	FX = FX / (FX.sum(axis=-1).dimshuffle(0, 1, 'x') + eps)
 	FY = FY / (FY.sum(axis=-1).dimshuffle(0, 1, 'x') + eps)
 
 	return FX, FY
 
+### Recurrent step
+# img: of shape (batch_size, nr_channels, img_rows, img_cols)
 def __step(img, prev_bbox, prev_att, state):
 	cx = (prev_bbox[:, 2] + prev_bbox[:, 0]) / 2.
 	cy = (prev_bbox[:, 3] + prev_bbox[:, 1]) / 2.
-	sigma = TT.exp(prev_att[:, 0])
-	fract = prev_att[:, 1]
+	sigma = TT.exp(prev_att[:, 0]) * (max(img_col, img_row) / 2)
+	fract = TT.exp(prev_att[:, 1])
+        amplifier = TT.exp(prev_att[:, 2])
 
-	abs_cx = (cx + 1) / 2. * (img_cols - 1)
-	abs_cy = (cy + 1) / 2. * (img_rows - 1)
-	abs_stride = fract * img_rows / (NP.max(img_cols, img_rows) - 1)
+        eps = 1e-8
+
+	abs_cx = (cx + 1) / 2. * (img_col - 1)
+	abs_cy = (cy + 1) / 2. * (img_row - 1)
+	abs_stride = (fract * (max(img_col, img_row) - 1)) * ((1. / (NUM_N - 1.)) if NUM_N > 1 else 0)
 
 	FX, FY = __filterbank(abs_cx, abs_cy, abs_stride, sigma)
-	unnormalized_mask = (FX.dimshuffle(0, 'x', 1, 'x', 2) * FX.dimshuffle(0, 1, 'x', 2, 'x')).sum(axis=2).sum(axis=1)
-	mask = unnormalized_mask / (unnormalized_mask.sum(axis=2).sum(axis=1))
-	masked_img = mask.dimshuffle(0, 'x', 1, 2) * img
+	unnormalized_mask = (FX.dimshuffle(0, 'x', 1, 'x', 2) * FY.dimshuffle(0, 1, 'x', 2, 'x')).sum(axis=2).sum(axis=1)
+	mask = unnormalized_mask# / (unnormalized_mask.sum(axis=2).sum(axis=1) + eps).dimshuffle(0, 'x', 'x')
+	masked_img = (mask.dimshuffle(0, 'x', 1, 2) * img) * amplifier.dimshuffle(0, 'x', 'x', 'x')
 
 	conv1 = conv2d(masked_img, conv1_filters, subsample=(conv1_stride, conv1_stride))
 	act1 = TT.tanh(conv1)
@@ -257,7 +244,7 @@ startAtt = TT.matrix()
 
 # Move the time axis to the top
 _imgs = imgs.dimshuffle(1, 0, 2, 3, 4)
-sc,_ = T.scan(__step, sequences=[imgs.dimshuffle(1, 0, 2, 3, 4)], outputs_info=[starts, startAtt, TT.zeros((batch_size, gru_dim)), None])
+sc,_ = T.scan(__step, sequences=[imgs.dimshuffle(1, 0, 2, 3, 4)], outputs_info=[starts, startAtt, T.shared(NP.zeros((batch_size, gru_dim), dtype=T.config.floatX)), None])
 
 bbox_seq = sc[0].dimshuffle(1, 0, 2)
 att_seq = sc[1].dimshuffle(1, 0, 2)
@@ -270,7 +257,7 @@ cost = ((targets - bbox_seq) ** 2).sum() / batch_size / seq_len_scalar
 
 print 'Building optimizer'
 
-params = [conv1_filters, Wr, Ur, br, Wz, Uz, bz, Wg, Ug, bg, W_fc2, b_fc2]
+params = [conv1_filters, Wr, Ur, br, Wz, Uz, bz, Wg, Ug, bg, W_fc2, b_fc2, W_fc3, b_fc3]
 ### RMSProp begin
 def rmsprop(cost, params, lr=0.001, rho=0.9, epsilon=1e-6):
 	'''
@@ -306,18 +293,19 @@ from data_handler import *
 
 print 'START'
 
-bmnist = BouncingMNIST(nr_objs, seq_len, batch_size, img_row, dataset_name+"/inputs", dataset_name+"/targets", acc=acc_scale, scale_range=zoom_scale, clutter_move = clutter_move, with_clutters = with_clutters, buff=True)
+bmnist = BouncingMNIST(nr_objs, seq_len, batch_size, img_row, dataset_name+"/inputs", dataset_name+"/targets", acc=acc_scale, scale_range=zoom_scale, clutter_move = clutter_move, with_clutters = with_clutters, buff=True, filename=filename)
 try:
-	for i in range(0, 50):
+	for i in range(0, 60):
 		for j in range(0, 2000):
                         _len = seq_len
 			#_len = int(RNG.exponential(seq_len - 5) + 5) if variadic_length else seq_len	
 		        data, label = bmnist.GetBatch(count = 2 if double_mnist else 1)
 			data = data[:, :, NP.newaxis, :, :] / 255.0
 			label = label / (img_row / 2.) - 1.
-			att = np.zeros(np.shape(label[:,0,0:2]))
-			att[:,0] = 1000
-			att[:,1] = 1
+			att = np.zeros((batch_size, att_params))
+                        att[:, 0] = 10
+                        att[:, 1] = 1
+                        att[:, 2] = 0
 			cost, bbox_seq, att_seq, mask = train(_len, data, label[:, 0, :], att, label)
                         print 'Mask ', NP.max(mask)
 			print 'Attention, sigma, strideH, strideW', NP.mean(NP.abs(att_seq), axis=1)

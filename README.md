@@ -15,3 +15,10 @@ Additionally, **ConvTracker** requires [keras](https://github.com/fchollet/keras
 `recurrent_att.py` - **RecTracker-Att-N**.  N can be specified in `--grid_size` option.
 `data_handler.py` - Moving MNIST dataset generator
 
+## Usage
+
+Run `train.sh` to train the **RecTracker-Att-1** model.
+
+Run `test.sh` to test the **RecTracker-Att-1** model under different configurations.
+
+**RecTracker-ID** and **ConvTracker** accept the same options.
