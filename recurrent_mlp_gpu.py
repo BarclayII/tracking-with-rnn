@@ -5,6 +5,8 @@ import theano.tensor as TT
 import theano.tensor.nnet as NN
 import theano.tensor.signal as SIG
 
+from theano.compile.nanguardmode import NanGuardMode
+
 import numpy as NP
 import numpy.random as RNG
 
@@ -304,7 +306,7 @@ def sample_with_iou(bbox, iou_low, iou_high):
 # prev_b: (batch_size, 1, 1)
 # prev_pos: (batch_size, steps, feat_dim)
 # prev_neg: (batch_size, steps, feat_dim)
-def __step(img, prev_bbox, prev_att, state, prev_conf, prev_sugg, prev_W, prev_b, prev_pos, prev_neg, timestep):
+def __step(img, prev_bbox, prev_att, state, prev_conf, prev_sugg, prev_W, prev_b, prev_pos, prev_neg, timestep, conv1_filters, Wr, Ur, br, Wz, Uz, bz, Wg, Ug, bg, W_fc2, b_fc2, W_fc3, b_fc3):
 	cx = (prev_bbox[:, 2] + prev_bbox[:, 0]) / 2.
 	cy = (prev_bbox[:, 3] + prev_bbox[:, 1]) / 2.
 	sigma = TT.exp(prev_att[:, 0]) * (max(img_col, img_row) / 2)
@@ -377,13 +379,11 @@ def __step(img, prev_bbox, prev_att, state, prev_conf, prev_sugg, prev_W, prev_b
 	feat = conv2d(crop.reshape((batch_size, 1, img_row, img_col)), conv1_filters, subsample=(conv1_stride, conv1_stride)).reshape((batch_size, 1, -1))
 	conf = NN.sigmoid(batch_dot(feat, prev_W) + TT.addbroadcast(prev_b, 1))
 
-	def classify(x, W, b):
-		# x: (batch_size, samples_per_batch, feature_per_sample)
-		return NN.sigmoid(batch_dot(x, W) + TT.addbroadcast(b, 1))
-
 	def update_step(W, b, x, y, alpha=1):
-		y_hat = TT.maximum(classify(x, W, b), 1e-8)
-		loss = (-y * TT.log(y_hat) - (1 - y) * (1 - TT.log(y_hat))).mean()
+		z = batch_dot(x, W) + TT.addbroadcast(b, 1)
+		y_hat = NN.sigmoid(z)
+		# Deep Learning, p.182
+		loss = NN.softplus((1 - 2 * y) * z).mean()
 		g = T.grad(loss, [W, b])
 		return W - alpha * g[0], b - alpha * g[1], loss
 
@@ -391,16 +391,21 @@ def __step(img, prev_bbox, prev_att, state, prev_conf, prev_sugg, prev_W, prev_b
 	pos_bbox = sample_positives(bbox)
 	pos_crop = batch_multicrop(pos_bbox, img)
 	pos_feat = conv2d(pos_crop.reshape((batch_size * nr_samples, 1, img_row, img_col)), conv1_filters, subsample=(conv1_stride, conv1_stride)).reshape((batch_size, nr_samples, -1))
-	pos = TG.disconnected_grad(TT.set_subtensor(prev_pos[:, (nr_samples*timestep):(nr_samples*(timestep+1))], pos_feat))
+	pos = TT.set_subtensor(prev_pos[:, (nr_samples*timestep):(nr_samples*(timestep+1))], pos_feat)
 	nr_samples = 8
 	neg_bbox = sample_negatives(bbox)
 	neg_crop = batch_multicrop(neg_bbox, img)
 	neg_feat = conv2d(neg_crop.reshape((batch_size * nr_samples, 1, img_row, img_col)), conv1_filters, subsample=(conv1_stride, conv1_stride)).reshape((batch_size, nr_samples, -1))
-	neg = TG.disconnected_grad(TT.set_subtensor(prev_neg[:, (nr_samples*timestep):(nr_samples*(timestep+1))], neg_feat))
-	update_scan, _ = T.scan(fn=update_step,
-				outputs_info=[prev_W, prev_b, None],
-                                non_sequences=[TT.concatenate([pos[:, :9*timestep], neg[:, :8*timestep]], axis=1), TT.concatenate([TT.ones((batch_size, 9*timestep, 1)), -TT.ones((batch_size, 8*timestep, 1))], axis=1)], n_steps=10)
-	new_W, new_b = TG.disconnected_grad(update_scan[0][-1]), TG.zero_grad(update_scan[1][-1])
+	neg = TT.set_subtensor(prev_neg[:, (nr_samples*timestep):(nr_samples*(timestep+1))], neg_feat)
+
+	new_W = prev_W
+	new_b = prev_b
+	mlp_x = TT.concatenate([pos[:, :9*(timestep+1)], neg[:, :8*(timestep+1)]], axis=1)
+	mlp_y = TT.concatenate([TT.ones((batch_size, 9*(timestep+1), 1)), TT.zeros((batch_size, 8*(timestep+1), 1))], axis=1)
+	for _ in range(0, 10):
+		new_W, new_b, _ = update_step(new_W, new_b, mlp_x, mlp_y)
+	new_W = TG.disconnected_grad(new_W)
+	new_b = TG.disconnected_grad(new_b)
 
 	nr_samples = 17
 	sugg_bbox = TT.concatenate([pos_bbox, neg_bbox], axis=1)
@@ -409,7 +414,8 @@ def __step(img, prev_bbox, prev_att, state, prev_conf, prev_sugg, prev_W, prev_b
 	print sugg_conf.dtype
 	sugg_pos = TT.cast(sugg_conf > 0, T.config.floatX)
 	print sugg_pos.dtype
-	sugg = TG.disconnected_grad((sugg_bbox * TT.patternbroadcast(sugg_pos, [False, False, True])).sum(axis=1) / TT.patternbroadcast(sugg_pos.sum(axis=1), [False, True]))
+	# TT.maximum(1, *) for avoiding division by zero
+	sugg = TG.disconnected_grad((sugg_bbox * TT.patternbroadcast(sugg_pos, [False, False, True])).sum(axis=1) / TT.patternbroadcast(TT.maximum(1, sugg_pos.sum(axis=1)), [False, True]))
 
 	return bbox, att, gru_h, TT.unbroadcast(conf, 1), sugg, new_W, TT.unbroadcast(new_b, 1), pos, neg, timestep + 1
 
@@ -419,6 +425,8 @@ pos_bboxes = TT.tensor4()
 neg_bboxes = TT.tensor4()
 starts = TT.matrix()
 startAtt = TT.matrix()
+
+params = [conv1_filters, Wr, Ur, br, Wz, Uz, bz, Wg, Ug, bg, W_fc2, b_fc2, W_fc3, b_fc3]
 
 # Move the time axis to the top
 sc,_ = T.scan(__step, sequences=[imgs.dimshuffle(1, 0, 2, 3, 4)],
@@ -430,8 +438,11 @@ sc,_ = T.scan(__step, sequences=[imgs.dimshuffle(1, 0, 2, 3, 4)],
 			      T.shared(NP.zeros((batch_size, conv1_output_dim, 1), dtype=T.config.floatX)),
 			      T.shared(NP.zeros((batch_size, 1, 1), dtype=T.config.floatX)),
 			      T.shared(NP.zeros((batch_size, 9 * seq_len, conv1_output_dim), dtype=T.config.floatX)),
-			      T.shared(NP.zeros((batch_size, 8 * seq_len, conv1_output_dim), dtype=T.config.floatX)), NP.cast['int32'](0)]
-			      )
+			      T.shared(NP.zeros((batch_size, 8 * seq_len, conv1_output_dim), dtype=T.config.floatX)), NP.cast['int32'](0)],
+		non_sequences=params,
+		strict=True,
+		mode=NanGuardMode(nan_is_error=True, inf_is_error=True, big_is_error=True)
+		)
 
 bbox_seq = sc[0].dimshuffle(1, 0, 2)
 att_seq = sc[1].dimshuffle(1, 0, 2)
@@ -444,7 +455,6 @@ cost = ((targets - bbox_seq) ** 2).sum() / batch_size / seq_len_scalar
 
 print 'Building optimizer'
 
-params = [conv1_filters, Wr, Ur, br, Wz, Uz, bz, Wg, Ug, bg, W_fc2, b_fc2, W_fc3, b_fc3]
 ### RMSProp begin
 def rmsprop(cost, params, lr=0.001, rho=0.9, epsilon=1e-6):
 	'''
@@ -463,7 +473,9 @@ def rmsprop(cost, params, lr=0.001, rho=0.9, epsilon=1e-6):
 
 ### RMSprop end
 
-train = T.function([seq_len_scalar, imgs, starts, startAtt, targets], [cost, bbox_seq, att_seq, mask_seq], updates=rmsprop(cost, params) if not test else None, allow_input_downcast=True)
+train = T.function([seq_len_scalar, imgs, starts, startAtt, targets], [cost, bbox_seq, att_seq, mask_seq], updates=rmsprop(cost, params) if not test else None, allow_input_downcast=True,
+		mode=NanGuardMode(nan_is_error=True, inf_is_error=True, big_is_error=True)
+		)
 import cPickle
 
 try:
