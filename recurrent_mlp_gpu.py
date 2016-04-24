@@ -10,9 +10,6 @@ import numpy.random as RNG
 
 from collections import OrderedDict
 
-import cvxopt.solvers as CS
-from cvxopt import matrix as M
-
 TRNG = TT.shared_randomstreams.RandomStreams()
 
 #####################################################################
@@ -380,25 +377,15 @@ def __step(img, prev_bbox, prev_att, state, prev_conf, prev_sugg, prev_W, prev_b
 	feat = conv2d(crop.reshape((batch_size, 1, img_row, img_col)), conv1_filters, subsample=(conv1_stride, conv1_stride)).reshape((batch_size, 1, -1))
 	conf = NN.sigmoid(batch_dot(feat, prev_W) + TT.addbroadcast(prev_b, 1))
 
-	nr_samples = 17
-	sugg_bbox = sample_around(bbox)		# (batch_size, nr_samples, 4)
-	sugg_crop = batch_multicrop(sugg_bbox, img)
-	sugg_feat = conv2d(sugg_crop.reshape((batch_size * nr_samples, 1, img_row, img_col)), conv1_filters, subsample=(conv1_stride, conv1_stride)).reshape((batch_size, nr_samples, -1))
-	sugg_conf = batch_dot(sugg_feat, prev_W) + TT.addbroadcast(prev_b, 1)
-	print sugg_conf.dtype
-	sugg_pos = TT.cast(sugg_conf > 0, T.config.floatX)
-	print sugg_pos.dtype
-	sugg = TG.disconnected_grad((sugg_bbox * TT.patternbroadcast(sugg_pos, [False, False, True])).sum(axis=1) / TT.patternbroadcast(sugg_pos.sum(axis=1), [False, True]))
-
 	def classify(x, W, b):
 		# x: (batch_size, samples_per_batch, feature_per_sample)
 		return NN.sigmoid(batch_dot(x, W) + TT.addbroadcast(b, 1))
 
 	def update_step(W, b, x, y, alpha=1):
-		y_hat = classify(x, W, b)
-		loss = ((y_hat - y) ** 2).mean()
+		y_hat = TT.maximum(classify(x, W, b), 1e-8)
+		loss = (-y * TT.log(y_hat) - (1 - y) * (1 - TT.log(y_hat))).mean()
 		g = T.grad(loss, [W, b])
-		return (W - alpha * g[0], b - alpha * g[1], loss), T.scan_module.until(loss < 0.01)
+		return W - alpha * g[0], b - alpha * g[1], loss
 
 	nr_samples = 9
 	pos_bbox = sample_positives(bbox)
@@ -412,8 +399,17 @@ def __step(img, prev_bbox, prev_att, state, prev_conf, prev_sugg, prev_W, prev_b
 	neg = TG.disconnected_grad(TT.set_subtensor(prev_neg[:, (nr_samples*timestep):(nr_samples*(timestep+1))], neg_feat))
 	update_scan, _ = T.scan(fn=update_step,
 				outputs_info=[prev_W, prev_b, None],
-                                non_sequences=[TT.concatenate([pos[:, :9*timestep], neg[:, :8*timestep]], axis=1), TT.concatenate([TT.ones((batch_size, 9*timestep, 1)), -TT.ones((batch_size, 8*timestep, 1))], axis=1)], n_steps=1000)
+                                non_sequences=[TT.concatenate([pos[:, :9*timestep], neg[:, :8*timestep]], axis=1), TT.concatenate([TT.ones((batch_size, 9*timestep, 1)), -TT.ones((batch_size, 8*timestep, 1))], axis=1)], n_steps=10)
 	new_W, new_b = TG.disconnected_grad(update_scan[0][-1]), TG.zero_grad(update_scan[1][-1])
+
+	nr_samples = 17
+	sugg_bbox = TT.concatenate([pos_bbox, neg_bbox], axis=1)
+	sugg_feat = TT.concatenate([pos_feat, neg_feat], axis=1)
+	sugg_conf = batch_dot(sugg_feat, prev_W) + TT.addbroadcast(prev_b, 1)
+	print sugg_conf.dtype
+	sugg_pos = TT.cast(sugg_conf > 0, T.config.floatX)
+	print sugg_pos.dtype
+	sugg = TG.disconnected_grad((sugg_bbox * TT.patternbroadcast(sugg_pos, [False, False, True])).sum(axis=1) / TT.patternbroadcast(sugg_pos.sum(axis=1), [False, True]))
 
 	return bbox, att, gru_h, TT.unbroadcast(conf, 1), sugg, new_W, TT.unbroadcast(new_b, 1), pos, neg, timestep + 1
 
