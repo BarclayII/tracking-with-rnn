@@ -1,0 +1,33 @@
+Using gpu device 3: GeForce GTX TITAN X (CNMeM is enabled with initial size: 95.0% of memory, cuDNN 5004)
+Using CUDNN instead of Theano conv2d
+80000
+Initializing parameters
+Building network
+/usr/local/lib/python2.7/dist-packages/Theano-0.9.0dev0-py2.7.egg/theano/scan_module/scan_utils.py:493: UserWarning: Expected OrderedDict or OrderedUpdates, got <type 'dict'>. This can make your script non-deterministic.
+  + str(type(elem)) + ". This can make your script non-"
+Building optimizer
+Generating dataset
+START
+/usr/local/lib/python2.7/dist-packages/scipy/ndimage/interpolation.py:549: UserWarning: From scipy 0.13.0, the output shape of zoom() is calculated with round() instead of int() - for these inputs the size of the returned array has changed.
+  "the returned array has changed.", UserWarning)
+Traceback (most recent call last):
+  File "recurrent_local_online.py", line 433, in <module>
+    cost, bbox_seq = train(data, label[:, 0, :], label)
+  File "/usr/local/lib/python2.7/dist-packages/Theano-0.9.0dev0-py2.7.egg/theano/compile/function_module.py", line 908, in __call__
+    storage_map=getattr(self.fn, 'storage_map', None))
+  File "/usr/local/lib/python2.7/dist-packages/Theano-0.9.0dev0-py2.7.egg/theano/gof/link.py", line 314, in raise_with_op
+    reraise(exc_type, exc_value, exc_trace)
+  File "/usr/local/lib/python2.7/dist-packages/Theano-0.9.0dev0-py2.7.egg/theano/compile/function_module.py", line 895, in __call__
+    self.fn() if output_subset is None else\
+MemoryError: Error allocating 4300800000 bytes of device memory (CNMEM_STATUS_OUT_OF_MEMORY).
+Apply node that caused the error: GpuAlloc{memset_0=True}(CudaNdarrayConstant{0.0}, Elemwise{add,no_inplace}.0, Shape_i{0}.0, Shape_i{1}.0, Shape_i{2}.0, Shape_i{3}.0, Shape_i{4}.0)
+Toposort index: 107
+Inputs types: [CudaNdarrayType(float32, scalar), TensorType(int64, scalar), TensorType(int64, scalar), TensorType(int64, scalar), TensorType(int64, scalar), TensorType(int64, scalar), TensorType(int64, scalar)]
+Inputs shapes: [(), (), (), (), (), (), ()]
+Inputs strides: [(), (), (), (), (), (), ()]
+Inputs values: [CudaNdarray(0.0), array(21), array(32), array(20), array(32), array(50), array(50)]
+Outputs clients: [[for{inplace{1,2,3,4,5,6,7,8,9,10,11,},gpu,grad_of_scan_fn}(Shape_i{1}.0, GpuAlloc{memset_0=True}.0, GpuAlloc{memset_0=True}.0, GpuAlloc{memset_0=True}.0, GpuAlloc{memset_0=True}.0, GpuElemwise{Composite{(i0 - sqr(i1))},no_inplace}.0, GpuAlloc{memset_0=True}.0, GpuSubtensor{int64:int64:int64}.0, GpuSubtensor{int64:int64:int64}.0, GpuSubtensor{int64:int64:int64}.0, GpuSubtensor{::int64}.0, GpuAlloc{memset_0=True}.0, GpuAlloc{memset_0=True}.0, GpuAlloc{memset_0=True}.0, GpuAlloc{memset_0=True}.0, GpuAlloc{memset_0=True}.0, GpuAlloc{memset_0=True}.0, GpuAlloc{memset_0=True}.0, GpuAlloc{memset_0=True}.0, GpuAlloc{memset_0=True}.0, GpuAlloc{memset_0=True}.0, GpuAlloc{memset_0=True}.0, Shape_i{1}.0, Shape_i{1}.0, Shape_i{1}.0, Shape_i{1}.0, Shape_i{1}.0, Shape_i{1}.0, conv1_filters, Wz, Uz, Wg, Wr, Ur, Ug, GpuDimShuffle{1,0}.0, GpuDimShuffle{x,0}.0, GpuDimShuffle{1,0}.0, GpuDimShuffle{1,0}.0, GpuDimShuffle{x,0}.0, GpuDimShuffle{1,0}.0, GpuDimShuffle{x,0}.0, GpuDimShuffle{1,0}.0, GpuDimShuffle{1,0}.0, GpuDimShuffle{1,0}.0, MakeVector{dtype='int64'}.0, Shape_i{0}.0, Shape_i{3}.0, Shape_i{2}.0, Elemwise{Composite{(i0 * (i1 // i0))}}.0, Elemwise{Composite{(i0 * (i1 // i0))}}.0)]]
+
+HINT: Re-running with most Theano optimization disabled could give you a back-trace of when this node was created. This can be done with by setting the Theano flag 'optimizer=fast_compile'. If that does not work, Theano optimizations can be disabled with 'optimizer=None'.
+HINT: Use the Theano flag 'exception_verbosity=high' for a debugprint and storage map footprint of this apply node.
+
