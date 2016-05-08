@@ -1,0 +1,303 @@
+Function profiling
+==================
+  Message: recurrent_local_online.py:320
+  Time in 1 calls to Function.__call__: 2.520827e+01s
+  Time in Function.fn.__call__: 2.520812e+01s (99.999%)
+  Time in thunks: 2.520791e+01s (99.999%)
+  Total compile time: 8.608932e+00s
+    Number of Apply nodes: 101
+    Theano Optimizer time: 4.402306e+00s
+       Theano validate time: 3.729177e-02s
+    Theano Linker time (includes C, CUDA code generation/compiling): 4.168378e+00s
+       Import time 2.704723e-01s
+
+Time in all call to theano.grad() 1.760960e-01s
+Time since theano import 52.696s
+Class
+---
+<% time> <sum %> <apply time> <time per call> <type> <#call> <#apply> <Class name>
+  100.0%   100.0%      25.204s       2.52e+01s     Py       1       1   theano.scan_module.scan_op.Scan
+   0.0%   100.0%       0.002s       5.07e-04s     C        4       4   theano.sandbox.cuda.basic_ops.GpuFromHost
+   0.0%   100.0%       0.002s       2.97e-04s     C        6       6   theano.sandbox.cuda.basic_ops.GpuIncSubtensor
+   0.0%   100.0%       0.000s       5.87e-06s     C       18      18   theano.tensor.elemwise.Elemwise
+   0.0%   100.0%       0.000s       1.56e-05s     Py       5       5   theano.compile.ops.Rebroadcast
+   0.0%   100.0%       0.000s       3.61e-05s     C        2       2   theano.sandbox.cuda.basic_ops.HostFromGpu
+   0.0%   100.0%       0.000s       2.94e-05s     C        2       2   theano.sandbox.cuda.basic_ops.GpuElemwise
+   0.0%   100.0%       0.000s       1.68e-06s     C       26      26   theano.compile.ops.Shape_i
+   0.0%   100.0%       0.000s       5.32e-06s     C        6       6   theano.sandbox.cuda.basic_ops.GpuAllocEmpty
+   0.0%   100.0%       0.000s       3.26e-06s     C        9       9   theano.sandbox.cuda.basic_ops.GpuSubtensor
+   0.0%   100.0%       0.000s       2.19e-06s     C       12      12   theano.sandbox.cuda.basic_ops.GpuDimShuffle
+   0.0%   100.0%       0.000s       2.50e-05s     C        1       1   theano.sandbox.cuda.basic_ops.GpuCAReduce
+   0.0%   100.0%       0.000s       1.19e-05s     C        1       1   theano.tensor.subtensor.IncSubtensor
+   0.0%   100.0%       0.000s       1.53e-06s     C        5       5   theano.tensor.basic.ScalarFromTensor
+   0.0%   100.0%       0.000s       3.34e-06s     C        2       2   theano.tensor.opt.MakeVector
+   0.0%   100.0%       0.000s       6.20e-06s     C        1       1   theano.tensor.basic.AllocEmpty
+   ... (remaining 0 Classes account for   0.00%(0.00s) of the runtime)
+
+Ops
+---
+<% time> <sum %> <apply time> <time per call> <type> <#call> <#apply> <Op name>
+  100.0%   100.0%      25.204s       2.52e+01s     Py       1        1   forall_inplace,gpu,scan_fn}
+   0.0%   100.0%       0.002s       5.07e-04s     C        4        4   GpuFromHost
+   0.0%   100.0%       0.002s       2.97e-04s     C        6        6   GpuIncSubtensor{InplaceSet;:int64:}
+   0.0%   100.0%       0.000s       1.56e-05s     Py       5        5   Rebroadcast{0}
+   0.0%   100.0%       0.000s       3.61e-05s     C        2        2   HostFromGpu
+   0.0%   100.0%       0.000s       3.29e-05s     C        1        1   GpuElemwise{Sub}[(0, 0)]
+   0.0%   100.0%       0.000s       5.32e-06s     C        6        6   GpuAllocEmpty
+   0.0%   100.0%       0.000s       2.81e-05s     C        1        1   Elemwise{Composite{Switch(LE(i0, i1), i1, i2)}}
+   0.0%   100.0%       0.000s       2.60e-05s     C        1        1   GpuElemwise{Composite{(i0 / (i1 * i2 * i3))}}[(0, 0)]
+   0.0%   100.0%       0.000s       2.50e-05s     C        1        1   GpuCAReduce{pre=sqr,red=add}{1,1,1}
+   0.0%   100.0%       0.000s       2.21e-06s     C        8        8   Shape_i{0}
+   0.0%   100.0%       0.000s       2.49e-06s     C        7        7   GpuSubtensor{int64}
+   0.0%   100.0%       0.000s       5.96e-06s     C        2        2   GpuSubtensor{int64:int64:int8}
+   0.0%   100.0%       0.000s       1.19e-05s     C        1        1   IncSubtensor{InplaceSet;:int64:}
+   0.0%   100.0%       0.000s       5.48e-06s     C        2        2   Elemwise{Composite{(((i0 - i1) - i2) + i3)}}[(0, 0)]
+   0.0%   100.0%       0.000s       1.22e-06s     C        8        8   Shape_i{1}
+   0.0%   100.0%       0.000s       4.53e-06s     C        2        2   Elemwise{add,no_inplace}
+   0.0%   100.0%       0.000s       4.41e-06s     C        2        2   Elemwise{Composite{(i0 * (i1 // i0))}}
+   0.0%   100.0%       0.000s       8.82e-06s     C        1        1   Elemwise{Composite{Switch(LT(i0, i1), i0, i1)}}
+   0.0%   100.0%       0.000s       1.62e-06s     C        5        5   Shape_i{2}
+   ... (remaining 20 Ops account for   0.00%(0.00s) of the runtime)
+
+Apply
+------
+<% time> <sum %> <apply time> <time per call> <#call> <id> <Apply name>
+  100.0%   100.0%      25.204s       2.52e+01s      1    89   forall_inplace,gpu,scan_fn}(Shape_i{1}.0, GpuSubtensor{int64:int64:int8}.0, GpuIncSubtensor{InplaceSet;:int64:}.0, GpuIncSubtensor{InplaceSet;:int64:}.0, IncSubtensor{InplaceSet;:int64:}.0, GpuIncSubtensor{InplaceSet;:int64:}.0, GpuIncSubtensor{InplaceSet;:int64:}.0, GpuIncSubtensor{InplaceSet;:int64:}.0, GpuIncSubtensor{InplaceSet;:int64:}.0, conv1_filters, Wz, Uz, Wg, Wr, Ur, Ug, W_fc2, GpuDimShuffle{x,0}.0, GpuDimShuffle{x,0}.0, GpuDimShuffle{x,0
+   0.0%   100.0%       0.002s       1.95e-03s      1     1   GpuFromHost(<TensorType(float32, 5D)>)
+   0.0%   100.0%       0.002s       1.57e-03s      1    87   GpuIncSubtensor{InplaceSet;:int64:}(GpuAllocEmpty.0, Rebroadcast{0}.0, Constant{1})
+   0.0%   100.0%       0.000s       8.39e-05s      1    77   GpuIncSubtensor{InplaceSet;:int64:}(GpuAllocEmpty.0, Rebroadcast{0}.0, Constant{1})
+   0.0%   100.0%       0.000s       6.70e-05s      1    86   GpuIncSubtensor{InplaceSet;:int64:}(GpuAllocEmpty.0, Rebroadcast{0}.0, Constant{1})
+   0.0%   100.0%       0.000s       5.22e-05s      1    96   HostFromGpu(GpuDimShuffle{1,0,2}.0)
+   0.0%   100.0%       0.000s       4.51e-05s      1    38   GpuFromHost(<TensorType(float32, 3D)>)
+   0.0%   100.0%       0.000s       3.29e-05s      1    97   GpuElemwise{Sub}[(0, 0)](GpuFromHost.0, GpuDimShuffle{1,0,2}.0)
+   0.0%   100.0%       0.000s       3.19e-05s      1    57   Rebroadcast{0}(GpuDimShuffle{x,0,1}.0)
+   0.0%   100.0%       0.000s       2.81e-05s      1    41   Elemwise{Composite{Switch(LE(i0, i1), i1, i2)}}(Shape_i{1}.0, TensorConstant{0}, TensorConstant{0})
+   0.0%   100.0%       0.000s       2.60e-05s      1    99   GpuElemwise{Composite{(i0 / (i1 * i2 * i3))}}[(0, 0)](GpuCAReduce{pre=sqr,red=add}{1,1,1}.0, GpuSubtensor{int64}.0, GpuSubtensor{int64}.0, GpuSubtensor{int64}.0)
+   0.0%   100.0%       0.000s       2.50e-05s      1    98   GpuCAReduce{pre=sqr,red=add}{1,1,1}(GpuElemwise{Sub}[(0, 0)].0)
+   0.0%   100.0%       0.000s       2.41e-05s      1    88   GpuIncSubtensor{InplaceSet;:int64:}(GpuAllocEmpty.0, Rebroadcast{0}.0, Constant{1})
+   0.0%   100.0%       0.000s       2.19e-05s      1    61   GpuFromHost(Elemwise{Cast{float32}}.0)
+   0.0%   100.0%       0.000s       2.00e-05s      1   100   HostFromGpu(GpuElemwise{Composite{(i0 / (i1 * i2 * i3))}}[(0, 0)].0)
+   0.0%   100.0%       0.000s       2.00e-05s      1    85   GpuIncSubtensor{InplaceSet;:int64:}(GpuAllocEmpty.0, Rebroadcast{0}.0, Constant{1})
+   0.0%   100.0%       0.000s       1.79e-05s      1    56   GpuIncSubtensor{InplaceSet;:int64:}(GpuAllocEmpty.0, GpuDimShuffle{x,0,1}.0, Constant{1})
+   0.0%   100.0%       0.000s       1.50e-05s      1    47   Rebroadcast{0}(GpuDimShuffle{x,0}.0)
+   0.0%   100.0%       0.000s       1.19e-05s      1    43   IncSubtensor{InplaceSet;:int64:}(AllocEmpty{dtype='int32'}.0, TensorConstant{(1,) of 0}, Constant{1})
+   0.0%   100.0%       0.000s       1.19e-05s      1    32   GpuFromHost(<TensorType(float32, matrix)>)
+   ... (remaining 81 Apply instances account for 0.00%(0.00s) of the runtime)
+
+Here are tips to potentially make your code run faster
+                 (if you think of new ones, suggest them on the mailing list).
+                 Test them first, as they are not guaranteed to always provide a speedup.
+  Sorry, no tip for today.
+
+Scan Op profiling ( scan_fn )
+==================
+  Message: None
+  Time in 1 calls of the op (for a total of 20 steps) 2.520268e+01s
+
+  Total time spent in calling the VM 2.516385e+01s (99.846%)
+  Total overhead (computing slices..) 3.882742e-02s (0.154%)
+
+Class
+---
+<% time> <sum %> <apply time> <time per call> <type> <#call> <#apply> <Class name>
+  24.6%    24.6%       6.162s       6.16e-02s     Py     100       5   theano.tensor.subtensor.AdvancedIncSubtensor
+  20.8%    45.4%       5.225s       5.22e-02s     C      100       5   theano.sandbox.cuda.dnn.GpuDnnConvGradW
+  19.6%    65.0%       4.927s       2.46e-02s     C      200      10   theano.sandbox.cuda.basic_ops.HostFromGpu
+  16.8%    81.9%       4.219s       3.52e-02s     C      120       6   theano.sandbox.cuda.dnn.GpuDnnConv
+  14.2%    96.1%       3.561s       1.62e-02s     C      220      11   theano.sandbox.cuda.basic_ops.GpuFromHost
+   2.4%    98.4%       0.594s       9.89e-03s     C       60       3   theano.tensor.basic.Alloc
+   0.6%    99.1%       0.158s       3.59e-04s     C      440      22   theano.sandbox.cuda.basic_ops.GpuReshape
+   0.3%    99.4%       0.072s       7.20e-04s     Py     100       5   theano.tensor.subtensor.AdvancedSubtensor
+   0.2%    99.5%       0.046s       7.90e-05s     C      580      29   theano.sandbox.cuda.basic_ops.GpuElemwise
+   0.2%    99.7%       0.045s       5.59e-04s     C       80       4   theano.sandbox.cuda.blas.GpuDot22
+   0.2%    99.9%       0.042s       1.06e-03s     C       40       2   theano.sandbox.cuda.basic_ops.GpuIncSubtensor
+   0.0%    99.9%       0.010s       1.04e-04s     C      100       5   theano.sandbox.cuda.basic_ops.GpuCAReduce
+   0.0%   100.0%       0.009s       4.35e-04s     C       20       1   theano.sandbox.cuda.basic_ops.GpuJoin
+   0.0%   100.0%       0.002s       9.86e-06s     C      220      11   theano.sandbox.cuda.basic_ops.GpuAllocEmpty
+   0.0%   100.0%       0.002s       3.14e-05s     C       60       3   theano.sandbox.cuda.blas.GpuGemm
+   0.0%   100.0%       0.001s       4.51e-06s     C      260      13   theano.sandbox.cuda.basic_ops.GpuContiguous
+   0.0%   100.0%       0.001s       1.73e-06s     C      640      32   theano.compile.ops.Shape_i
+   0.0%   100.0%       0.001s       2.04e-06s     C      500      25   theano.tensor.elemwise.Elemwise
+   0.0%   100.0%       0.001s       4.94e-05s     Py      20       1   theano.tensor.basic.ARange
+   0.0%   100.0%       0.001s       3.12e-06s     C      300      15   theano.tensor.opt.MakeVector
+   ... (remaining 6 Classes account for   0.01%(0.00s) of the runtime)
+
+Ops
+---
+<% time> <sum %> <apply time> <time per call> <type> <#call> <#apply> <Op name>
+  24.6%    24.6%       6.162s       6.16e-02s     Py     100        5   AdvancedIncSubtensor{inplace=False,  set_instead_of_inc=False}
+  20.8%    45.4%       5.225s       5.22e-02s     C      100        5   GpuDnnConvGradW{algo='none', inplace=True}
+  19.6%    65.0%       4.927s       2.46e-02s     C      200       10   HostFromGpu
+  16.8%    81.9%       4.219s       3.52e-02s     C      120        6   GpuDnnConv{algo='small', inplace=True}
+  14.2%    96.1%       3.561s       1.62e-02s     C      220       11   GpuFromHost
+   2.4%    98.4%       0.594s       9.89e-03s     C       60        3   Alloc
+   0.6%    99.1%       0.157s       7.13e-04s     C      220       11   GpuReshape{4}
+   0.3%    99.3%       0.072s       7.20e-04s     Py     100        5   AdvancedSubtensor
+   0.2%    99.5%       0.045s       5.59e-04s     C       80        4   GpuDot22
+   0.2%    99.7%       0.042s       1.06e-03s     C       40        2   GpuIncSubtensor{Set;::, int32}
+   0.1%    99.8%       0.024s       2.41e-04s     C      100        5   GpuElemwise{Composite{(((i0 * i1 * (i2 - Composite{scalar_sigmoid((i0 + i1))}(i3, i4))) / i5) - ((i0 * i6 * Composite{scalar_sigmoid((i0 + i1))}(i3, i4)) / i5))}}[(0, 3)]
+   0.0%    99.8%       0.010s       1.04e-04s     C      100        5   GpuCAReduce{add}{0,1,1,1}
+   0.0%    99.9%       0.009s       4.35e-04s     C       20        1   GpuJoin
+   0.0%    99.9%       0.006s       2.97e-04s     C       20        1   GpuElemwise{Mul}[(0, 0)]
+   0.0%    99.9%       0.004s       1.78e-04s     C       20        1   GpuElemwise{Composite{(i0 * (i1 + Abs(i1)))}}[(0, 1)]
+   0.0%    99.9%       0.003s       3.27e-05s     C       80        4   GpuElemwise{Sub}[(0, 0)]
+   0.0%    99.9%       0.002s       9.86e-06s     C      220       11   GpuAllocEmpty
+   0.0%    99.9%       0.002s       3.14e-05s     C       60        3   GpuGemm{inplace}
+   0.0%    99.9%       0.002s       9.11e-05s     C       20        1   GpuElemwise{sub,no_inplace}
+   0.0%    99.9%       0.002s       1.89e-05s     C       80        4   GpuElemwise{Composite{(i0 - (i1 * i2))}}[(0, 0)]
+   ... (remaining 46 Ops account for   0.06%(0.01s) of the runtime)
+
+Apply
+------
+<% time> <sum %> <apply time> <time per call> <#call> <id> <Apply name>
+   5.0%     5.0%       1.257s       6.29e-02s     20   196   AdvancedIncSubtensor{inplace=False,  set_instead_of_inc=False}(Alloc.0, HostFromGpu.0, Reshape{1}.0, Reshape{1}.0, Reshape{1}.0)
+   4.9%     9.9%       1.233s       6.16e-02s     20   150   AdvancedIncSubtensor{inplace=False,  set_instead_of_inc=False}(Alloc.0, HostFromGpu.0, Reshape{1}.0, Reshape{1}.0, Reshape{1}.0)
+   4.9%    14.8%       1.227s       6.13e-02s     20   241   AdvancedIncSubtensor{inplace=False,  set_instead_of_inc=False}(Alloc.0, HostFromGpu.0, Reshape{1}.0, Reshape{1}.0, Reshape{1}.0)
+   4.9%    19.7%       1.224s       6.12e-02s     20   219   AdvancedIncSubtensor{inplace=False,  set_instead_of_inc=False}(Alloc.0, HostFromGpu.0, Reshape{1}.0, Reshape{1}.0, Reshape{1}.0)
+   4.9%    24.6%       1.221s       6.11e-02s     20   173   AdvancedIncSubtensor{inplace=False,  set_instead_of_inc=False}(Alloc.0, HostFromGpu.0, Reshape{1}.0, Reshape{1}.0, Reshape{1}.0)
+   4.2%    28.7%       1.046s       5.23e-02s     20   223   GpuDnnConvGradW{algo='none', inplace=True}(GpuContiguous.0, GpuContiguous.0, GpuAllocEmpty.0, GpuDnnConvDesc{border_mode='half', subsample=(1, 1), conv_mode='conv', precision='float32'}.0, Constant{0.1}, Constant{0.0})
+   4.2%    32.9%       1.045s       5.23e-02s     20   245   GpuDnnConvGradW{algo='none', inplace=True}(GpuContiguous.0, GpuContiguous.0, GpuAllocEmpty.0, GpuDnnConvDesc{border_mode='half', subsample=(1, 1), conv_mode='conv', precision='float32'}.0, Constant{0.1}, Constant{0.0})
+   4.2%    37.1%       1.045s       5.22e-02s     20   177   GpuDnnConvGradW{algo='none', inplace=True}(GpuContiguous.0, GpuContiguous.0, GpuAllocEmpty.0, GpuDnnConvDesc{border_mode='half', subsample=(1, 1), conv_mode='conv', precision='float32'}.0, Constant{0.1}, Constant{0.0})
+   4.2%    41.2%       1.044s       5.22e-02s     20   200   GpuDnnConvGradW{algo='none', inplace=True}(GpuContiguous.0, GpuContiguous.0, GpuAllocEmpty.0, GpuDnnConvDesc{border_mode='half', subsample=(1, 1), conv_mode='conv', precision='float32'}.0, Constant{0.1}, Constant{0.0})
+   4.2%    45.4%       1.044s       5.22e-02s     20   154   GpuDnnConvGradW{algo='none', inplace=True}(GpuContiguous.0, GpuContiguous.0, GpuAllocEmpty.0, GpuDnnConvDesc{border_mode='half', subsample=(1, 1), conv_mode='conv', precision='float32'}.0, Constant{0.1}, Constant{0.0})
+   4.0%    49.4%       1.003s       5.01e-02s     20   136   HostFromGpu(GpuReshape{5}.0)
+   3.8%    53.2%       0.961s       4.80e-02s     20   159   HostFromGpu(GpuReshape{5}.0)
+   3.8%    57.0%       0.958s       4.79e-02s     20   182   HostFromGpu(GpuReshape{5}.0)
+   3.8%    60.9%       0.958s       4.79e-02s     20   228   HostFromGpu(GpuReshape{5}.0)
+   3.8%    64.7%       0.958s       4.79e-02s     20   205   HostFromGpu(GpuReshape{5}.0)
+   3.4%    68.1%       0.844s       4.22e-02s     20   134   GpuDnnConv{algo='small', inplace=True}(GpuContiguous.0, GpuContiguous.0, GpuAllocEmpty.0, GpuDnnConvDesc{border_mode='half', subsample=(1, 1), conv_mode='conv', precision='float32'}.0, Constant{1.0}, Constant{0.0})
+   3.4%    71.4%       0.843s       4.21e-02s     20   226   GpuDnnConv{algo='small', inplace=True}(GpuContiguous.0, GpuContiguous.0, GpuAllocEmpty.0, GpuDnnConvDesc{border_mode='half', subsample=(1, 1), conv_mode='conv', precision='float32'}.0, Constant{1.0}, Constant{0.0})
+   3.4%    74.8%       0.843s       4.21e-02s     20   203   GpuDnnConv{algo='small', inplace=True}(GpuContiguous.0, GpuContiguous.0, GpuAllocEmpty.0, GpuDnnConvDesc{border_mode='half', subsample=(1, 1), conv_mode='conv', precision='float32'}.0, Constant{1.0}, Constant{0.0})
+   3.4%    78.1%       0.842s       4.21e-02s     20   180   GpuDnnConv{algo='small', inplace=True}(GpuContiguous.0, GpuContiguous.0, GpuAllocEmpty.0, GpuDnnConvDesc{border_mode='half', subsample=(1, 1), conv_mode='conv', precision='float32'}.0, Constant{1.0}, Constant{0.0})
+   3.4%    81.5%       0.842s       4.21e-02s     20   157   GpuDnnConv{algo='small', inplace=True}(GpuContiguous.0, GpuContiguous.0, GpuAllocEmpty.0, GpuDnnConvDesc{border_mode='half', subsample=(1, 1), conv_mode='conv', precision='float32'}.0, Constant{1.0}, Constant{0.0})
+   ... (remaining 227 Apply instances account for 18.51%(4.64s) of the runtime)
+
+Here are tips to potentially make your code run faster
+                 (if you think of new ones, suggest them on the mailing list).
+                 Test them first, as they are not guaranteed to always provide a speedup.
+  Sorry, no tip for today.
+Function profiling
+==================
+  Message: recurrent_local_online.py:354
+  Time in 0 calls to Function.__call__: 0.000000e+00s
+  Total compile time: 2.318869e-01s
+    Number of Apply nodes: 19
+    Theano Optimizer time: 1.797130e-01s
+       Theano validate time: 5.925894e-03s
+    Theano Linker time (includes C, CUDA code generation/compiling): 2.266502e-02s
+       Import time 1.671076e-03s
+
+Time in all call to theano.grad() 1.760960e-01s
+Time since theano import 52.771s
+Here are tips to potentially make your code run faster
+                 (if you think of new ones, suggest them on the mailing list).
+                 Test them first, as they are not guaranteed to always provide a speedup.
+  Sorry, no tip for today.
+Function profiling
+==================
+  Message: recurrent_local_online.py:385
+  Time in 0 calls to Function.__call__: 0.000000e+00s
+  Total compile time: 3.702800e-01s
+    Number of Apply nodes: 21
+    Theano Optimizer time: 3.065960e-01s
+       Theano validate time: 3.029823e-03s
+    Theano Linker time (includes C, CUDA code generation/compiling): 3.469181e-02s
+       Import time 1.948595e-03s
+
+Time in all call to theano.grad() 1.760960e-01s
+Time since theano import 52.771s
+Here are tips to potentially make your code run faster
+                 (if you think of new ones, suggest them on the mailing list).
+                 Test them first, as they are not guaranteed to always provide a speedup.
+  Sorry, no tip for today.
+Function profiling
+==================
+  Message: Sum of all(3) printed profiles at exit excluding Scan op profile.
+  Time in 1 calls to Function.__call__: 2.520827e+01s
+  Time in Function.fn.__call__: 2.520812e+01s (99.999%)
+  Time in thunks: 2.520791e+01s (99.999%)
+  Total compile time: 9.211099e+00s
+    Number of Apply nodes: 101
+    Theano Optimizer time: 4.888615e+00s
+       Theano validate time: 4.624748e-02s
+    Theano Linker time (includes C, CUDA code generation/compiling): 4.225735e+00s
+       Import time 2.740920e-01s
+
+Time in all call to theano.grad() 1.760960e-01s
+Time since theano import 52.772s
+Class
+---
+<% time> <sum %> <apply time> <time per call> <type> <#call> <#apply> <Class name>
+  100.0%   100.0%      25.204s       2.52e+01s     Py       1       1   theano.scan_module.scan_op.Scan
+   0.0%   100.0%       0.002s       5.07e-04s     C        4       4   theano.sandbox.cuda.basic_ops.GpuFromHost
+   0.0%   100.0%       0.002s       2.97e-04s     C        6       6   theano.sandbox.cuda.basic_ops.GpuIncSubtensor
+   0.0%   100.0%       0.000s       5.87e-06s     C       18      18   theano.tensor.elemwise.Elemwise
+   0.0%   100.0%       0.000s       1.56e-05s     Py       5       5   theano.compile.ops.Rebroadcast
+   0.0%   100.0%       0.000s       3.61e-05s     C        2       2   theano.sandbox.cuda.basic_ops.HostFromGpu
+   0.0%   100.0%       0.000s       2.94e-05s     C        2       2   theano.sandbox.cuda.basic_ops.GpuElemwise
+   0.0%   100.0%       0.000s       1.68e-06s     C       26      26   theano.compile.ops.Shape_i
+   0.0%   100.0%       0.000s       5.32e-06s     C        6       6   theano.sandbox.cuda.basic_ops.GpuAllocEmpty
+   0.0%   100.0%       0.000s       3.26e-06s     C        9       9   theano.sandbox.cuda.basic_ops.GpuSubtensor
+   0.0%   100.0%       0.000s       2.19e-06s     C       12      12   theano.sandbox.cuda.basic_ops.GpuDimShuffle
+   0.0%   100.0%       0.000s       2.50e-05s     C        1       1   theano.sandbox.cuda.basic_ops.GpuCAReduce
+   0.0%   100.0%       0.000s       1.19e-05s     C        1       1   theano.tensor.subtensor.IncSubtensor
+   0.0%   100.0%       0.000s       1.53e-06s     C        5       5   theano.tensor.basic.ScalarFromTensor
+   0.0%   100.0%       0.000s       3.34e-06s     C        2       2   theano.tensor.opt.MakeVector
+   0.0%   100.0%       0.000s       6.20e-06s     C        1       1   theano.tensor.basic.AllocEmpty
+   ... (remaining 0 Classes account for   0.00%(0.00s) of the runtime)
+
+Ops
+---
+<% time> <sum %> <apply time> <time per call> <type> <#call> <#apply> <Op name>
+  100.0%   100.0%      25.204s       2.52e+01s     Py       1        1   forall_inplace,gpu,scan_fn}
+   0.0%   100.0%       0.002s       5.07e-04s     C        4        4   GpuFromHost
+   0.0%   100.0%       0.002s       2.97e-04s     C        6        6   GpuIncSubtensor{InplaceSet;:int64:}
+   0.0%   100.0%       0.000s       1.56e-05s     Py       5        5   Rebroadcast{0}
+   0.0%   100.0%       0.000s       3.61e-05s     C        2        2   HostFromGpu
+   0.0%   100.0%       0.000s       3.29e-05s     C        1        1   GpuElemwise{Sub}[(0, 0)]
+   0.0%   100.0%       0.000s       5.32e-06s     C        6        6   GpuAllocEmpty
+   0.0%   100.0%       0.000s       2.81e-05s     C        1        1   Elemwise{Composite{Switch(LE(i0, i1), i1, i2)}}
+   0.0%   100.0%       0.000s       2.60e-05s     C        1        1   GpuElemwise{Composite{(i0 / (i1 * i2 * i3))}}[(0, 0)]
+   0.0%   100.0%       0.000s       2.50e-05s     C        1        1   GpuCAReduce{pre=sqr,red=add}{1,1,1}
+   0.0%   100.0%       0.000s       2.21e-06s     C        8        8   Shape_i{0}
+   0.0%   100.0%       0.000s       2.49e-06s     C        7        7   GpuSubtensor{int64}
+   0.0%   100.0%       0.000s       5.96e-06s     C        2        2   GpuSubtensor{int64:int64:int8}
+   0.0%   100.0%       0.000s       1.19e-05s     C        1        1   IncSubtensor{InplaceSet;:int64:}
+   0.0%   100.0%       0.000s       5.48e-06s     C        2        2   Elemwise{Composite{(((i0 - i1) - i2) + i3)}}[(0, 0)]
+   0.0%   100.0%       0.000s       1.22e-06s     C        8        8   Shape_i{1}
+   0.0%   100.0%       0.000s       4.53e-06s     C        2        2   Elemwise{add,no_inplace}
+   0.0%   100.0%       0.000s       4.41e-06s     C        2        2   Elemwise{Composite{(i0 * (i1 // i0))}}
+   0.0%   100.0%       0.000s       8.82e-06s     C        1        1   Elemwise{Composite{Switch(LT(i0, i1), i0, i1)}}
+   0.0%   100.0%       0.000s       1.62e-06s     C        5        5   Shape_i{2}
+   ... (remaining 20 Ops account for   0.00%(0.00s) of the runtime)
+
+Apply
+------
+<% time> <sum %> <apply time> <time per call> <#call> <id> <Apply name>
+  100.0%   100.0%      25.204s       2.52e+01s      1    89   forall_inplace,gpu,scan_fn}(Shape_i{1}.0, GpuSubtensor{int64:int64:int8}.0, GpuIncSubtensor{InplaceSet;:int64:}.0, GpuIncSubtensor{InplaceSet;:int64:}.0, IncSubtensor{InplaceSet;:int64:}.0, GpuIncSubtensor{InplaceSet;:int64:}.0, GpuIncSubtensor{InplaceSet;:int64:}.0, GpuIncSubtensor{InplaceSet;:int64:}.0, GpuIncSubtensor{InplaceSet;:int64:}.0, conv1_filters, Wz, Uz, Wg, Wr, Ur, Ug, W_fc2, GpuDimShuffle{x,0}.0, GpuDimShuffle{x,0}.0, GpuDimShuffle{x,0
+   0.0%   100.0%       0.002s       1.95e-03s      1     1   GpuFromHost(<TensorType(float32, 5D)>)
+   0.0%   100.0%       0.002s       1.57e-03s      1    87   GpuIncSubtensor{InplaceSet;:int64:}(GpuAllocEmpty.0, Rebroadcast{0}.0, Constant{1})
+   0.0%   100.0%       0.000s       8.39e-05s      1    77   GpuIncSubtensor{InplaceSet;:int64:}(GpuAllocEmpty.0, Rebroadcast{0}.0, Constant{1})
+   0.0%   100.0%       0.000s       6.70e-05s      1    86   GpuIncSubtensor{InplaceSet;:int64:}(GpuAllocEmpty.0, Rebroadcast{0}.0, Constant{1})
+   0.0%   100.0%       0.000s       5.22e-05s      1    96   HostFromGpu(GpuDimShuffle{1,0,2}.0)
+   0.0%   100.0%       0.000s       4.51e-05s      1    38   GpuFromHost(<TensorType(float32, 3D)>)
+   0.0%   100.0%       0.000s       3.29e-05s      1    97   GpuElemwise{Sub}[(0, 0)](GpuFromHost.0, GpuDimShuffle{1,0,2}.0)
+   0.0%   100.0%       0.000s       3.19e-05s      1    57   Rebroadcast{0}(GpuDimShuffle{x,0,1}.0)
+   0.0%   100.0%       0.000s       2.81e-05s      1    41   Elemwise{Composite{Switch(LE(i0, i1), i1, i2)}}(Shape_i{1}.0, TensorConstant{0}, TensorConstant{0})
+   0.0%   100.0%       0.000s       2.60e-05s      1    99   GpuElemwise{Composite{(i0 / (i1 * i2 * i3))}}[(0, 0)](GpuCAReduce{pre=sqr,red=add}{1,1,1}.0, GpuSubtensor{int64}.0, GpuSubtensor{int64}.0, GpuSubtensor{int64}.0)
+   0.0%   100.0%       0.000s       2.50e-05s      1    98   GpuCAReduce{pre=sqr,red=add}{1,1,1}(GpuElemwise{Sub}[(0, 0)].0)
+   0.0%   100.0%       0.000s       2.41e-05s      1    88   GpuIncSubtensor{InplaceSet;:int64:}(GpuAllocEmpty.0, Rebroadcast{0}.0, Constant{1})
+   0.0%   100.0%       0.000s       2.19e-05s      1    61   GpuFromHost(Elemwise{Cast{float32}}.0)
+   0.0%   100.0%       0.000s       2.00e-05s      1   100   HostFromGpu(GpuElemwise{Composite{(i0 / (i1 * i2 * i3))}}[(0, 0)].0)
+   0.0%   100.0%       0.000s       2.00e-05s      1    85   GpuIncSubtensor{InplaceSet;:int64:}(GpuAllocEmpty.0, Rebroadcast{0}.0, Constant{1})
+   0.0%   100.0%       0.000s       1.79e-05s      1    56   GpuIncSubtensor{InplaceSet;:int64:}(GpuAllocEmpty.0, GpuDimShuffle{x,0,1}.0, Constant{1})
+   0.0%   100.0%       0.000s       1.50e-05s      1    47   Rebroadcast{0}(GpuDimShuffle{x,0}.0)
+   0.0%   100.0%       0.000s       1.19e-05s      1    43   IncSubtensor{InplaceSet;:int64:}(AllocEmpty{dtype='int32'}.0, TensorConstant{(1,) of 0}, Constant{1})
+   0.0%   100.0%       0.000s       1.19e-05s      1    32   GpuFromHost(<TensorType(float32, matrix)>)
+   ... (remaining 81 Apply instances account for 0.00%(0.00s) of the runtime)
+
+Here are tips to potentially make your code run faster
+                 (if you think of new ones, suggest them on the mailing list).
+                 Test them first, as they are not guaranteed to always provide a speedup.
+  Sorry, no tip for today.
+
